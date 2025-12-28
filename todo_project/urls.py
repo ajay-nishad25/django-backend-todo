@@ -1,0 +1,28 @@
+from django.contrib import admin
+from django.urls import path
+
+from accounts.views import SignupView, LoginView, LogoutView
+from todo.views import (
+    TodoCreateView,
+    TodoListView,
+    TodoUpdateView,
+    TodoDeleteView,
+    
+)
+
+urlpatterns = [
+
+    path('admin/', admin.site.urls),
+
+    # AUTH APIs (Company-style token auth)
+    path('api/signup/', SignupView.as_view(), name='signup'),
+    path('api/login/', LoginView.as_view(), name='login'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
+
+
+    # Todo APIs
+    path('api/create-todo/', TodoCreateView.as_view(), name='create-todo'),
+    path('api/get-todos/', TodoListView.as_view(), name='get-todos'),
+    path('api/update-todo/<int:todo_id>/', TodoUpdateView.as_view(), name='update-todo'),
+    path('api/delete-todo/<int:todo_id>/', TodoDeleteView.as_view(), name='delete-todo'),
+]
