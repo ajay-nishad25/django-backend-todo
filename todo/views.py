@@ -55,11 +55,7 @@ class TodoListView(APIView):
         paginator = Paginator(todos, 5)  # 5 todos per page
         page = paginator.get_page(page_number)
 
-        print(list(page))
-
         serializer = TodoSerializer(page, many=True)
-
-        print(serializer.data)
 
         return Response({
             "count": paginator.count,
