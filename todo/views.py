@@ -52,7 +52,7 @@ class TodoListView(APIView):
 
         # 5. Pagination
         page_number = request.query_params.get("page", 1)
-        paginator = Paginator(todos, 5)  # 5 todos per page
+        paginator = Paginator(todos, 12)  # 9 todos per page
         page = paginator.get_page(page_number)
 
         serializer = TodoSerializer(page, many=True)
@@ -69,7 +69,15 @@ class TodoListView(APIView):
 class TodoUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, todo_id):
+    def patch(self, request):
+        todo_id = request.data.get("todo_id")
+
+        if not todo_id:
+            return Response(
+                {"error": "todo_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             todo = Todo.objects.get(id=todo_id, user=request.user)
         except Todo.DoesNotExist:
@@ -78,7 +86,15 @@ class TodoUpdateView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = TodoSerializer(todo, data=request.data, partial=True)
+        # Remove todo_id from payload before serializer
+        update_data = request.data.copy()
+        update_data.pop("todo_id", None)
+
+        serializer = TodoSerializer(
+            todo,
+            data=update_data,
+            partial=True
+        )
 
         if serializer.is_valid():
             serializer.save()
@@ -92,7 +108,16 @@ class TodoUpdateView(APIView):
 # below class based api view is to delete the todo of logged in user
 class TodoDeleteView(APIView):
     permission_classes = [IsAuthenticated]
-    def delete(self, request, todo_id):
+
+    def delete(self, request):
+        todo_id = request.query_params.get("todo_id")
+
+        if not todo_id:
+            return Response(
+                {"error": "todo_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             todo = Todo.objects.get(id=todo_id, user=request.user)
         except Todo.DoesNotExist:
