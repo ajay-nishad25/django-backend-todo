@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
+from .serializers import UserSerializer
 
 
 User = get_user_model()
@@ -65,9 +66,17 @@ class LoginView(APIView):
 
         # Create or get persistent token
         token, created = Token.objects.get_or_create(user=user)
+        user_data = UserSerializer(user).data
+        user_name = user.email.split("@")[0]
 
         return Response(
-            {"token": token.key},
+            {
+                "token": token.key,
+                "user_data": {
+                    **user_data,
+                    "user_name": user_name
+                }
+            },
             status=status.HTTP_200_OK
         )
 
