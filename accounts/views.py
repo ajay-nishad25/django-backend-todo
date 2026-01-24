@@ -92,3 +92,49 @@ class LogoutView(APIView):
             {"message": "Logged out successfully"},
             status=status.HTTP_200_OK
         )
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        # if any field is empty
+        if not current_password or not new_password or not confirm_password:
+            return Response(
+                {"error": "All fields are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # check current password
+        if not user.check_password(current_password):
+            return Response(
+                {"error": "Current password is incorrect"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # check new and confirm password 
+        if new_password != confirm_password:
+            return Response(
+                {"error": "New and confirm password do not match"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if new_password == current_password:
+            return Response(
+                {"error": "New password cannot be same as current password"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user.set_password(new_password)
+        user.save()
+
+        return Response(
+            {"message": "Password reset successfully, Please login again"},
+            status=status.HTTP_200_OK
+        )

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from accounts.views import SignupView, LoginView, LogoutView
+from accounts.views import SignupView, LoginView, LogoutView, ResetPasswordView
 from todo.views import (
     TodoCreateView,
     TodoListView,
@@ -18,14 +18,13 @@ urlpatterns = [
     path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/logout/', LogoutView.as_view(), name='logout'),
+    path("api/reset-password/", ResetPasswordView.as_view(), name="reset-password"),
 
 
     # Todo APIs
     path('api/create-todo/', TodoCreateView.as_view(), name='create-todo'),
     path('api/get-todos/', TodoListView.as_view(), name='get-todos'),
-    # path('api/update-todo/<int:todo_id>/', TodoUpdateView.as_view(), name='update-todo'),
     path('api/update-todo/', TodoUpdateView.as_view(), name='update-todo'),
-
     path('api/delete-todo/', TodoDeleteView.as_view(), name='delete-todo')
 
 ]
