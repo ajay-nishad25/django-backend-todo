@@ -40,7 +40,25 @@ class TodoListView(APIView):
         if is_completed is not None:
             todos = todos.filter(is_completed=is_completed.lower() == "true")
 
-        # 4. Sorting (int-based enum)
+        # 4. Filter by archive status
+        is_archived = request.query_params.get("is_archived")
+
+        if is_archived is not None:
+            todos = todos.filter(
+                is_archived=is_archived.lower() == "true"
+            )
+
+        # 5️ Tag filter (single tag only)
+        tag_id = request.query_params.get("tag_id")
+        if tag_id:
+            todos = todos.filter(tag__tag_code=tag_id)
+
+        # 6️ Due date filter
+        due_date = request.query_params.get("due_date")
+        if due_date:
+            todos = todos.filter(due_date=due_date)
+
+        # 7 Sorting (int-based enum) i.e latest (1) or oldest (2)
         sort_order = request.query_params.get("sort_order")
 
         if sort_order == "2":
@@ -50,7 +68,7 @@ class TodoListView(APIView):
             # Default & sort_order=1 → Latest first
             todos = todos.order_by("-created_at")
 
-        # 5. Pagination
+        # 8 Pagination
         page_number = request.query_params.get("page", 1)
         paginator = Paginator(todos, 12)  # 9 todos per page
         page = paginator.get_page(page_number)
