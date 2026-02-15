@@ -42,3 +42,26 @@ class TodoSerializer(serializers.ModelSerializer):
 
         todo.save()
         return todo
+    
+    def update(self, instance, validated_data):
+        tag_id = validated_data.pop("tag_id", None)
+
+        # Update normal fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Handle tag update (optional)
+        if tag_id is not None:
+            if tag_id == "":
+                instance.tag = None
+            else:
+                try:
+                    instance.tag = Tag.objects.get(tag_code=tag_id)
+                except Tag.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {"tag_id": "Invalid tag"}
+                    )
+
+        instance.save()
+        return instance
+
