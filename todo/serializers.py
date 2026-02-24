@@ -13,6 +13,11 @@ class TodoSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    due_date = serializers.DateField(
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = Todo
         fields = [
