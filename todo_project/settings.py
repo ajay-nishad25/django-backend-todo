@@ -10,22 +10,25 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+# below code is for SECRET_KEY Fallback
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5eez0p9aa0&wu6^uwj3j-*e(sgjigm8jr2hdnm)t%6#(91hlzl'
+# fetch the SECRET_KEY and DEBUG form .env 
+load_dotenv(BASE_DIR / ".env")
 
 
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    get_random_secret_key()
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = []
 
