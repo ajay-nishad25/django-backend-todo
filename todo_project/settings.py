@@ -30,8 +30,6 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-print('DEBUG', DEBUG)
-
 ALLOWED_HOSTS = os.getenv(
     "ALLOWED_HOSTS",
     "127.0.0.1,localhost"
