@@ -28,7 +28,9 @@ SECRET_KEY = os.getenv(
     get_random_secret_key()
 )
 
-DEBUG = os.getenv("DEBUG") == "True"
+DEBUG = os.getenv("DEBUG", "True") == "True"
+
+print('DEBUG', DEBUG)
 
 ALLOWED_HOSTS = os.getenv(
     "ALLOWED_HOSTS",
