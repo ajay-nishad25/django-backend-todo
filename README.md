@@ -79,12 +79,17 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+```bash
+python manage.py runserver
+```
+
 After creating the superuser, if you attempt to run the server without a `.env` file, you may encounter the following error:
 ```
 CommandError: You must set settings.ALLOWED_HOSTS if DEBUG is False.
 ```
 
-Proceed to the next step to resolve this.
+If you get above error then proceed to the next step to resolve this.
+i.e Step 7 and Step 8 else you can direclty jump to Step 9
 
 ---
 
@@ -151,7 +156,3 @@ In the admin panel, navigate to the **Tags** section and create the following ta
 ### Step 12 — Connect the Frontend
 
 Your backend is now fully set up. Head over to the [frontend repository](https://github.com/ajay-nishad25/react-frontend-todo) and log in using the superuser credentials.
-
-
-
-check grammar and put in professional guide for running this backend project note this should be in markdown language so that i can put this to my github .md file
