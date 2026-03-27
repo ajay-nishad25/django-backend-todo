@@ -138,3 +138,32 @@ class ResetPasswordView(APIView):
             {"message": "Password reset successfully, Please login again"},
             status=status.HTTP_200_OK
         )
+
+class UpdateThemeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        theme = request.data.get('theme')
+
+        try:
+            theme = int(theme)
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid theme value. Use 1 for light, 2 for dark"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if theme not in [1, 2]:
+            return Response(
+                {"error": "Invalid theme value. Use 1 for light, 2 for dark"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user = request.user
+        user.theme = theme
+        user.save()
+
+        return Response(
+            {"message": "Theme updated successfully", "theme": theme},
+            status=status.HTTP_200_OK
+        )
