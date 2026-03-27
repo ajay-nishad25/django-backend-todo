@@ -24,8 +24,14 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    THEME_CHOICES = (
+        (1, 'light'),
+        (2, 'dark'),
+    )
+
     username = None
     email = models.EmailField(unique=True)
+    theme = models.IntegerField(choices=THEME_CHOICES, default=1)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
