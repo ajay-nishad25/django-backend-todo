@@ -28,7 +28,12 @@ class TodoListView(APIView):
 
     def get(self, request):
         # most important get the pagination_batch_size from the request
-        pagination_batch_size = request.query_params.get("pagination_batch_size")
+        pagination_batch_size = request.query_params.get("pagination_batch_size", 12)
+
+        try:
+            pagination_batch_size = int(pagination_batch_size)
+        except (TypeError, ValueError): #if batch size is not an integer or not found then set default value as 12
+            pagination_batch_size = 12
 
         # 1. Base queryset (always user-scoped)
         todos = Todo.objects.filter(user=request.user)
