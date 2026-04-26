@@ -27,6 +27,9 @@ class TodoListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # most important get the pagination_batch_size from the request
+        pagination_batch_size = request.query_params.get("pagination_batch_size")
+
         # 1. Base queryset (always user-scoped)
         todos = Todo.objects.filter(user=request.user)
 
@@ -70,7 +73,7 @@ class TodoListView(APIView):
 
         # 8 Pagination
         page_number = request.query_params.get("page", 1)
-        paginator = Paginator(todos, 12)  # 9 todos per page
+        paginator = Paginator(todos, pagination_batch_size)  # 9 todos per page
         page = paginator.get_page(page_number)
 
         serializer = TodoSerializer(page, many=True)
