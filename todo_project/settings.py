@@ -22,13 +22,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # fetch the SECRET_KEY and DEBUG form .env 
 load_dotenv(BASE_DIR / ".env")
 
-
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    get_random_secret_key()
-)
+from django.core.exceptions import ImproperlyConfigured
 
 DEBUG = os.getenv("DEBUG", "True") == "True"
+
+_secret_key_env = os.getenv("SECRET_KEY")
+
+if _secret_key_env:
+    SECRET_KEY = _secret_key_env
+elif DEBUG:
+    SECRET_KEY = get_random_secret_key()
+else:
+    raise ImproperlyConfigured(
+        "SECRET_KEY environment variable is missing. "
+        "This must be set in production (DEBUG=False)."
+    )
 
 ALLOWED_HOSTS = os.getenv(
     "ALLOWED_HOSTS",
@@ -222,3 +230,26 @@ else:
     # Production with CORS_ALLOWED_ORIGINS missing or empty: lock down.
     # Cross-origin requests are rejected. This is the safe production default.
     CORS_ALLOW_ALL_ORIGINS = False
+
+# ---------------------------------------------------------------
+# Production Security Settings (HTTPS / SSL / Cookies)
+# ---------------------------------------------------------------
+if not DEBUG:
+    # Render terminates SSL at the load balancer and passes the X-Forwarded-Proto header.
+    # This tells Django that the request was actually secure, preventing infinite redirect loops.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Redirect all HTTP traffic to HTTPS (though Render does this automatically, this is defense in depth)
+    SECURE_SSL_REDIRECT = True
+
+    # Ensure cookies are only sent over HTTPS (protects Django Admin sessions and CSRF tokens)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HTTP Strict Transport Security (HSTS)
+    # Instructs browsers to ONLY connect via HTTPS for the specified time (1 year).
+    # SECURE_HSTS_SECONDS = 31536000
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
+    # Note: HSTS is commented out because it requires careful testing in production.
+    # If a subdomain doesn't have SSL, HSTS can break it. It's recommended but not forced here.
