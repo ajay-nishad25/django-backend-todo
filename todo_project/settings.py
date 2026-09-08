@@ -57,6 +57,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise must be placed immediately after SecurityMiddleware so it can
+    # serve static files efficiently before the request reaches Django views.
+    # https://whitenoise.readthedocs.io/en/stable/django.html
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -87,13 +91,38 @@ WSGI_APPLICATION = 'todo_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+#
+# Local development (DATABASE_URL not set):
+#   Uses SQLite — no setup required, works immediately after cloning.
+#
+# Production (DATABASE_URL set, e.g. on Render with Neon PostgreSQL):
+#   dj-database-url parses the full connection string and configures
+#   Django to use PostgreSQL automatically. The Neon connection string
+#   format is: postgresql://user:password@host/dbname?sslmode=require
+#
+#   CONN_MAX_AGE=600 keeps connections alive for up to 10 minutes.
+#   This is important for Neon Free tier, which closes idle connections
+#   after ~5 minutes — without it Django would hit connection errors
+#   on the next request after an idle period.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+import dj_database_url
+
+_database_url = os.getenv("DATABASE_URL", "")
+
+if _database_url:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _database_url,
+            conn_max_age=600,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -132,6 +161,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# STATIC_ROOT is the directory where collectstatic gathers all static files
+# for production serving. WhiteNoise serves files from this directory.
+# The 'staticfiles/' directory is already listed in .gitignore.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -156,4 +190,35 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Configuration
+# ---------------------------------------------------------------
+# Development (DEBUG=True): allow all origins for convenience so
+#   the local React dev server works without any extra config.
+#
+# Production (DEBUG=False): CORS_ALLOW_ALL_ORIGINS is disabled.
+#   Set CORS_ALLOWED_ORIGINS in the environment to a comma-separated
+#   list of the exact frontend origins that should be permitted.
+#   Example: CORS_ALLOWED_ORIGINS=https://your-app.vercel.app
+#
+# If CORS_ALLOWED_ORIGINS is not set in production the API will
+# reject cross-origin requests, which is the safe default.
+# ---------------------------------------------------------------
+
+_cors_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+
+if DEBUG:
+    # Local development: allow all origins so the React dev server works
+    # without any extra configuration.
+    CORS_ALLOW_ALL_ORIGINS = True
+elif _cors_origins_env:
+    # Production with origins configured: restrict to the supplied list only.
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip()
+        for origin in _cors_origins_env.split(",")
+        if origin.strip()
+    ]
+else:
+    # Production with CORS_ALLOWED_ORIGINS missing or empty: lock down.
+    # Cross-origin requests are rejected. This is the safe production default.
+    CORS_ALLOW_ALL_ORIGINS = False
